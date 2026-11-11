@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тренажер Past Simple: Порядок слов</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --primary-hover: #357abd;
+            --success: #2ecc71;
+            --success-hover: #27ae60;
+            --danger: #e74c3c;
+            --bg: #f4f7f6;
+            --card: #ffffff;
+        }
+
+        /* --- УЗОР НА ФОНЕ --- */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e8f4f8;
+            background-image: 
+                radial-gradient(#b3d9f2 15%, transparent 16%),
+                radial-gradient(#b3d9f2 15%, transparent 16%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        /* --- ОСНОВНАЯ КАРТОЧКА --- */
+        .app-container {
+            background: var(--card);
+            width: 95%;
+            max-width: 600px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(74, 144, 226, 0.2), 0 5px 15px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: 2px solid #fff;
+        }
+
+        /* Вкладки */
+        .tabs {
+            display: flex;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .tab {
+            flex: 1;
+            padding: 16px;
+            text-align: center;
+            font-weight: bold;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        .tab:hover {
+            background: #e2e8f0;
+        }
+        .tab.active {
+            background: var(--card);
+            color: var(--primary);
+            border-bottom: 3px solid var(--primary);
+        }
+        .tab-content {
+            display: none;
+            padding: 25px;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Вкладка Игра --- */
+        .image-display {
+            text-align: center;
+            font-size: 60px;
+            line-height: 1;
+            margin-bottom: 10px;
+            height: 70px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .hint-text {
+            text-align: center;
+            font-size: 16px;
+            color: #64748b;
+            margin-bottom: 20px;
+            font-style: italic;
+            min-height: 24px;
+        }
+
+        /* Зона, куда собираются слова */
+        .slots-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 20px;
+            min-height: 50px;
+            cursor: pointer;
+            padding: 10px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 12px;
+            transition: background 0.3s;
+        }
+        .slots-container:hover {
+            background: #eff6ff;
+            border-color: var(--primary);
+        }
+        
+        /* Плашки со словами */
+        .word-tile {
+            padding: 8px 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            /* Убираем text-transform: lowercase, чтобы сохранить заглавные буквы */
+        }
+
+        .slot .word-tile {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 5px rgba(74, 144, 226, 0.3);
+            animation: popIn 0.2s ease;
+        }
+
+        /* Кнопки со словами внизу */
+        .letters-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            min-height: 50px;
+        }
+        .letter-btn {
+            padding: 8px 15px;
+            font-size: 18px;
+            font-weight: bold;
+            background: #ffffff;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #b0c4de;
+            position: relative;
+            top: 0;
+        }
+        .letter-btn:hover { 
+            background: #eff6ff; 
+        }
+        .letter-btn:active {
+            top: 4px;
+            box-shadow: 0 0 0 #b0c4de;
+        }
+        .letter-btn.used { 
+            opacity: 0.3; 
+            pointer-events: none; 
+            transform: scale(0.95);
+            box-shadow: none;
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            color: #94a3b8;
+        }
+        
+        @keyframes popIn {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1); }
+        }
+
+        .message { 
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 16px; 
+            height: 25px; 
+            margin-bottom: 10px;
+            transition: color 0.3s;
+        }
+        .success { color: var(--success); }
+        .error { color: var(--danger); }
+
+        .btn-main {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background: linear-gradient(135deg, var(--primary), #6db3f2);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.4);
+        }
+        .btn-main:hover:not(:disabled) { 
+            background: linear-gradient(135deg, var(--primary-hover), #5aa1e0);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.5);
+        }
+        .btn-main:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .btn-main:disabled { 
+            background: #e2e8f0; 
+            color: #94a3b8;
+            cursor: not-allowed; 
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Блок со счетом и кнопкой сброса */
+        .score-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .score { 
+            color: #94a3b8; 
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .btn-reset {
+            background: #fff;
+            border: 2px solid #cbd5e1;
+            color: #64748b;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .btn-reset:hover {
+            background: #f1f5f9;
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: rotate(180deg);
+        }
+
+        /* --- Вкладка Слова (Предложения) --- */
+        .word-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 15px 0;
+            max-height: 250px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        .word-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        .word-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .word-list li {
+            padding: 10px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            transition: background 0.2s;
+        }
+        .word-list li:hover {
+            background: #fff;
+        }
+        .word-list li:last-child { border-bottom: none; }
+        .word-list .ru-text { font-size: 14px; color: #64748b; }
+        .word-list .en-text { font-weight: bold; color: var(--primary); font-size: 16px; }
+        
+        .add-form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px dashed #cbd5e1;
+        }
+        .add-form input {
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: border 0.3s;
+        }
+        .add-form input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .btn-add {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+        }
+        .btn-add:hover { 
+            background-color: var(--success-hover);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('game-tab', this)">Игра</div>
+        <div class="tab" onclick="switchTab('words-tab', this)">Мои предложения</div>
+    </div>
+
+    <!-- ВКЛАДКА ИГРА -->
+    <div id="game-tab" class="tab-content active">
+        <div class="image-display" id="image-display">❓</div>
+        <div class="hint-text" id="hint-text">Перевод предложения</div>
+        
+        <div class="slots-container" id="slots-container" title="Нажми сюда, чтобы убрать последнее слово"></div>
+        <div class="letters-container" id="letters-container"></div>
+        
+        <div class="message" id="message"></div>
+        
+        <button class="btn-main" id="action-btn" disabled>Выбери слова</button>
+        
+        <div class="score-container">
+            <div class="score">Правильно: <span id="score">0</span> | Попыток: <span id="total">0</span></div>
+            <button class="btn-reset" onclick="resetGame()" title="Начать сначала">🔄</button>
+        </div>
+    </div>
+
+    <!-- ВКЛАДКА МОИ ПРЕДЛОЖЕНИЯ -->
+    <div id="words-tab" class="tab-content">
+        <ul class="word-list" id="word-list"></ul>
+        
+        <div class="add-form">
+            <input type="text" id="new-ru" placeholder="Перевод (например, Я пошел в школу вчера.)" autocomplete="off">
+            <input type="text" id="new-en" placeholder="Английский (например, I went to school yesterday.)" autocomplete="off">
+            <input type="text" id="new-emoji" placeholder="Эмодзи (например, 🚶), можно пустым" autocomplete="off">
+            <button class="btn-add" onclick="addNewSentence()">Добавить предложение</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 40 предложений с правильной грамматикой и пунктуацией
+    const defaultSentences = [
+        // --- Утвердительные (Affirmative) ---
+        { emoji: "🚶", ru: "Я пошел в школу вчера.", en: "I went to school yesterday." },
+        { emoji: "🍎", ru: "Она съела яблоко утром.", en: "She ate an apple in the morning." },
+        { emoji: "👀", ru: "Он увидел кошку в парке.", en: "He saw a cat in the park." },
+        { emoji: "🛒", ru: "Мы купили хлеб и молоко.", en: "We bought bread and milk." },
+        { emoji: "🛠️", ru: "Мама сделала торт вчера.", en: "Mom made a cake yesterday." },
+        { emoji: "🚲", ru: "Я покатался на велосипеде.", en: "I rode a bike." },
+        { emoji: "🏊", ru: "Они плавали в реке.", en: "They swam in the river." },
+        { emoji: "✍️", ru: "Она написала письмо другу.", en: "She wrote a letter to a friend." },
+        { emoji: "✈️", ru: "Мы полетели в Москву.", en: "We flew to Moscow." },
+        { emoji: "🤝", ru: "Он встретил друга вчера.", en: "He met a friend yesterday." },
+        { emoji: "👩‍🏫", ru: "Учитель рассказал историю.", en: "The teacher told a story." },
+        { emoji: "🎁", ru: "Она принесла мне подарок.", en: "She brought me a gift." },
+        { emoji: "🍂", ru: "Мальчик упал с дерева.", en: "The boy fell from the tree." },
+        { emoji: "💪", ru: "Я мог плавать, когда мне было 5.", en: "I could swim when I was five." },
+        { emoji: "📚", ru: "Я выучил новые слова.", en: "I learnt new words." },
+        { emoji: "🏃", ru: "Он побежал домой.", en: "He ran home." },
+        { emoji: "🪑", ru: "Она села на стул.", en: "She sat on the chair." },
+        { emoji: "🎤", ru: "Они спели песню.", en: "They sang a song." },
+        { emoji: "🧍", ru: "Он стоял у окна.", en: "He stood by the window." },
+        { emoji: "🙈", ru: "Кошка спряталась под кроватью.", en: "The cat hid under the bed." },
+
+        // --- Отрицательные (Negative) ---
+        { emoji: "🍎", ru: "Я не ел завтрак.", en: "I didn't eat breakfast." },
+        { emoji: "👀", ru: "Он не видел этот фильм.", en: "He didn't see this film." },
+        { emoji: "🚶", ru: "Она не пошла в парк.", en: "She didn't go to the park." },
+        { emoji: "🛒", ru: "Мы не купили мороженое.", en: "We didn't buy ice cream." },
+        { emoji: "🛠️", ru: "Я не сделал домашнюю работу.", en: "I didn't do my homework." },
+        { emoji: "🏊", ru: "Они не плавали в море.", en: "They didn't swim in the sea." },
+        { emoji: "✍️", ru: "Она не написала письмо.", en: "She didn't write a letter." },
+        { emoji: "👩‍🏫", ru: "Учитель не говорил по-английски.", en: "The teacher didn't speak English." },
+        { emoji: "🤝", ru: "Я не встретил его вчера.", en: "I didn't meet him yesterday." },
+        { emoji: "🎁", ru: "Он не принес торт.", en: "He didn't bring a cake." },
+        { emoji: "🚲", ru: "Мы не катались на велосипеде.", en: "We didn't ride a bike." },
+        { emoji: "🍎", ru: "Кошка не съела рыбу.", en: "The cat didn't eat the fish." },
+        { emoji: "⏰", ru: "Я не проснулся рано.", en: "I didn't wake up early." },
+        { emoji: "📚", ru: "Он не выучил правило.", en: "He didn't learn the rule." },
+        { emoji: "🧍", ru: "Они не стояли в очереди.", en: "They didn't stand in line." },
+
+        // --- Вопросительные (Questions) ---
+        { emoji: "🚶", ru: "Ты ходил в кино вчера?", en: "Did you go to the cinema yesterday?" },
+        { emoji: "🍎", ru: "Она съела торт?", en: "Did she eat the cake?" },
+        { emoji: "👀", ru: "Он видел собаку?", en: "Did he see a dog?" },
+        { emoji: "🛒", ru: "Вы купили машину?", en: "Did you buy a car?" },
+        { emoji: "🛠️", ru: "Они сделали это?", en: "Did they make it?" },
+        { emoji: "✈️", ru: "Она полетела в Лондон?", en: "Did she fly to London?" },
+        { emoji: "🏊", ru: "Ты плавал в бассейне?", en: "Did you swim in the pool?" },
+        { emoji: "✍️", ru: "Он написал книгу?", en: "Did he write a book?" },
+        { emoji: "👩‍🏫", ru: "Учитель сказал правду?", en: "Did the teacher tell the truth?" },
+        { emoji: "🚲", ru: "Вы катались на велосипеде?", en: "Did you ride a bike?" }
+    ];
+
+    let allSentences = [];
+    let gameWords = [];
+    let currentSentence = null;
+    let currentInput = [];
+    let score = 0;
+    let total = 0;
+
+    function init() {
+        // Загружаем сохраненные предложения или берем стандартные
+        let saved = localStorage.getItem('myPastSimpleSentences');
+        if (saved) {
+            allSentences = JSON.parse(saved);
+        } else {
+            allSentences = [...defaultSentences];
+            saveSentences();
+        }
+        renderSentenceList();
+        startNewGame();
+    }
+
+    function saveSentences() {
+        localStorage.setItem('myPastSimpleSentences', JSON.stringify(allSentences));
+    }
+
+    function switchTab(tabId, tabElement) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        tabElement.classList.add('active');
+        
+        if (tabId === 'game-tab') {
+            // Если игра была окончена, начинаем заново
+            if (gameWords.length === 0 && currentSentence === null) {
+                startNewGame();
+            }
+        }
+    }
+
+    function startNewGame() {
+        gameWords = shuffle([...allSentences]);
+        score = 0;
+        total = 0;
+        document.getElementById('score').innerText = score;
+        document.getElementById('total').innerText = total;
+        nextSentence();
+    }
+
+    function resetGame() {
+        if(confirm("Начать игру сначала? Счет обнулится.")) {
+            startNewGame();
+        }
+    }
+
+    function shuffle(array) {
+        return array.sort(() => Math.random() - 0.5);
+    }
+
+    function nextSentence() {
+        if (gameWords.length === 0) {
+            document.getElementById('image-display').innerText = "🏆";
+            document.getElementById('hint-text').innerText = "Молодец!";
+            document.getElementById('slots-container').innerHTML = "";
+            document.getElementById('letters-container').innerHTML = "";
+            document.getElementById('message').innerText = "Все предложения пройдены!";
+            document.getElementById('action-btn').disabled = true;
+            document.getElementById('action-btn').innerText = "Ура!";
+            currentSentence = null;
+            return;
+        }
+
+        currentSentence = gameWords.pop();
+        
+        const imgDisplay = document.getElementById('image-display');
+        imgDisplay.innerText = currentSentence.emoji || "❓";
+        imgDisplay.style.animation = 'none';
+        imgDisplay.offsetHeight; 
+        imgDisplay.style.animation = 'bounceIn 0.5s ease';
+
+        document.getElementById('hint-text').innerText = currentSentence.ru;
+        document.getElementById('message').innerText = "";
+        currentInput = [];
+        
+        const slotsContainer = document.getElementById('slots-container');
+        const lettersContainer = document.getElementById('letters-container');
+        slotsContainer.innerHTML = "";
+        lettersContainer.innerHTML = "";
+        
+        // Разбиваем предложение на слова (убираем точку в конце для удобства сборки)
+        let cleanEn = currentSentence.en.replace(/[.!?]$/, '');
+        let words = cleanEn.split(' ');
+        
+        // Перемешиваем слова
+        let shuffledWords = shuffle([...words]);
+
+        shuffledWords.forEach((word) => {
+            const btn = document.createElement('button');
+            btn.className = 'letter-btn';
+            btn.innerText = word;
+            btn.onclick = () => selectWord(word, btn);
+            lettersContainer.appendChild(btn);
+        });
+
+        updateActionButton();
+    }
+
+    function selectWord(word, btnElement) {
+        // Узнаем, сколько слов в оригинале
+        let cleanEn = currentSentence.en.replace(/[.!?]$/, '');
+        const totalWords = cleanEn.split(' ').length;
+        
+        if (currentInput.length < totalWords) {
+            currentInput.push({ word: word, btn: btnElement });
+            btnElement.classList.add('used');
+            updateSlots();
+            updateActionButton();
+        }
+    }
+
+    function undoLastWord() {
+        if (currentInput.length > 0) {
+            const last = currentInput.pop();
+            last.btn.classList.remove('used');
+            updateSlots();
+            updateActionButton();
+            document.getElementById('message').innerText = "";
+        }
+    }
+
+    function updateSlots() {
+        const slotsContainer = document.getElementById('slots-container');
+        slotsContainer.innerHTML = "";
+        
+        currentInput.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'slot';
+            div.innerHTML = `<span class="word-tile">${item.word}</span>`;
+            slotsContainer.appendChild(div);
+        });
+    }
+
+    function updateActionButton() {
+        const btn = document.getElementById('action-btn');
+        let cleanEn = currentSentence.en.replace(/[.!?]$/, '');
+        const totalWords = cleanEn.split(' ').length;
+        
+        if (currentInput.length === totalWords) {
+            btn.disabled = false;
+            btn.innerText = "Проверить";
+            btn.onclick = checkAnswer;
+        } else {
+            btn.disabled = true;
+            btn.innerText = "Выбери слова";
+            btn.onclick = null; 
+        }
+    }
+
+    function checkAnswer() {
+        total++;
+        document.getElementById('total').innerText = total;
+        
+        // Собираем ответ пользователя
+        let userAnswer = currentInput.map(item => item.word).join(' ');
+        // Добавляем знак в конце (берем из оригинального предложения)
+        let punctuation = currentSentence.en.match(/[.!?]$/);
+        if (punctuation) {
+            userAnswer += punctuation[0];
+        }
+        
+        // Сравниваем с оригиналом (без учета регистра, но с учетом знаков препинания)
+        if (userAnswer.toLowerCase() === currentSentence.en.toLowerCase()) {
+            document.getElementById('message').innerHTML = "<span class='success'>Правильно! ✅</span>";
+            score++;
+            document.getElementById('score').innerText = score;
+            
+            document.getElementById('action-btn').disabled = true;
+            document.getElementById('action-btn').innerText = "Следующее...";
+            
+            setTimeout(() => {
+                nextSentence();
+            }, 1200);
+        } else {
+            document.getElementById('message').innerHTML = "<span class='error'>Ошибка! Проверь порядок слов и знаки. ❌</span>";
+            const slots = document.getElementById('slots-container');
+            slots.style.animation = 'none';
+            slots.offsetHeight; 
+            slots.style.animation = 'shake 0.4s ease';
+            
+            setTimeout(() => {
+                currentInput.forEach(item => item.btn.classList.remove('used'));
+                currentInput = [];
+                updateSlots();
+                updateActionButton();
+            }, 400);
+        }
+    }
+
+    const style = document.createElement('style');
+    style.innerHTML = `
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    document.getElementById('slots-container').addEventListener('click', undoLastWord);
+
+    // --- ЛОГИКА ДЛЯ ВКЛАДКИ "МОИ ПРЕДЛОЖЕНИЯ" ---
+    function renderSentenceList() {
+        const list = document.getElementById('word-list');
+        list.innerHTML = "";
+        
+        // Выводим в обратном порядке (новые сверху)
+        const reversed = [...allSentences].reverse();
+        
+        reversed.forEach(s => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <div class="ru-text">${s.emoji || "❓"} ${s.ru}</div>
+                <div class="en-text">${s.en}</div>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function addNewSentence() {
+        const ruInput = document.getElementById('new-ru');
+        const enInput = document.getElementById('new-en');
+        const emojiInput = document.getElementById('new-emoji');
+        
+        let ru = ruInput.value.trim();
+        let en = enInput.value.trim();
+        const emoji = emojiInput.value.trim() || "❓";
+        
+        if (ru === "" || en === "") {
+            alert("Пожалуйста, заполни поля с переводом и английским предложением!");
+            return;
+        }
+
+        // Автоматически делаем первую букву заглавной и ставим точку, если их нет
+        en = en.charAt(0).toUpperCase() + en.slice(1);
+        if (!/[.!?]$/.test(en)) {
+            en += ".";
+        }
+        ru = ru.charAt(0).toUpperCase() + ru.slice(1);
+
+        allSentences.push({ emoji: emoji, ru: ru, en: en });
+        saveSentences();
+        renderSentenceList();
+        
+        ruInput.value = "";
+        enInput.value = "";
+        emojiInput.value = "";
+        
+        alert("Предложение успешно добавлено!");
+    }
+
+    init();
+</script>
+
+</body>
+</html>
